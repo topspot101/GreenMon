@@ -1,0 +1,99 @@
+#!/usr/bin/perl -w
+use lib qw(/usr/lib/arm-linux-gnueabihf/perl5/5.28);
+use RRDs;
+use strict;
+use Getopt::Long;
+my $rrd_files_dir ="/home/phidget/workspace/";
+my %opts = ();
+GetOptions(\%opts, 'debug!','h!','type=s','id=s','period=s');
+my $file;
+if ($opts{type} eq "temphum") {
+	$file = $rrd_files_dir."temphumidity.rrd";
+} elsif ($opts{type} eq "irSurfaceTemp") {
+	$file = $rrd_files_dir."temphumidity.rrd";
+} elsif ($opts{type} eq "grp") {
+}
+my $period = $opts{period};
+my $end=RRDs::last($file);
+my @args;
+if ($period eq "day") {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '-u 100',
+    '-l 0',
+    '--slope-mode',
+    '--title=IR Temperature',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+    "DEF:irSurfaceTemp=$file:irSurfaceTemp:AVERAGE",
+    "DEF:irSurfaceTempmax=$file:irSurfaceTemp:MAX",
+    'AREA:irSurfaceTemp#00cc00:°C\u',     
+    'HRULE:10#EDC748:Target Min. 10°C            \r',
+    'LINE1:irSurfaceTempmax#ff0000:Max. °C\u',    
+    'HRULE:32.22#EC9D48:Target Max. 32.2°C            \r',
+    'GPRINT:irSurfaceTemp:MIN:Min. Temp.\: %1.3lf%S°C\l',
+    'GPRINT:irSurfaceTemp:MAX:Max. Temp.\: %1.3lf%S°C\l',
+    'GPRINT:irSurfaceTemp:LAST:Current Temp.\: %1.3lf%S°C\l'
+);
+} else {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '-u 100',
+    '-l 0',
+    '--slope-mode',
+    '--title=IR Temperature',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+    "DEF:irSurfaceTemp=$file:irSurfaceTemp:AVERAGE",
+    "DEF:irSurfaceTempmax=$file:irSurfaceTemp:MAX",
+    'AREA:irSurfaceTemp#00cc00:°C\u',
+    'HRULE:10#EDC748:    Target Min. 10°C            \r',
+    'LINE1:irSurfaceTemp#ff0000:Max. °C\u',
+    'HRULE:32.22#EC9D48:Target Max. 32.22°C     \r',
+    'GPRINT:irSurfaceTemp:MIN:Min. Temp.\: %1.3lf%S°C\l',
+    'GPRINT:irSurfaceTemp:MAX:Max. Temp.\: %1.3lf%S°C\l',
+    'GPRINT:irSurfaceTemp:AVERAGE:Avg. Temp.\: %1.3lf%S°C\l'
+);
+}
+if ($period eq 'week') {
+	push @args,('-s -1week');
+} elsif ($period eq 'month') {
+	push @args,('-s -1month');
+} elsif ($period eq 'year') {
+	push @args,('-s -1year');
+} else {
+	push @args,('-s -24h','-x','MINUTE:15:HOUR:1:HOUR:1:0:%H');
+}
+RRDs::graph(@args);
+my $err=RRDs::error;
+if ($err) {
+	print "error: $err\n" if $err;
+	exit(1);
+}
+exit(0);
