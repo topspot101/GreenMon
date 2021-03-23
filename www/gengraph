@@ -1,0 +1,121 @@
+#!/usr/bin/perl -w
+use lib qw(/usr/lib/arm-linux-gnueabihf/perl5/5.28);
+use RRDs;
+use strict;
+use Getopt::Long;
+my $rrd_files_dir ="/home/cary/workspace/Phidget/";
+my %opts = ();
+GetOptions(\%opts, 'debug!','h!','type=s','id=s','period=s');
+my $file;
+if ($opts{type} eq "temphum") {
+	$file = $rrd_files_dir."temphumidity.rrd";
+} elsif ($opts{type} eq "grp") {
+}
+my $period = $opts{period};
+my $end=RRDs::last($file);
+my @args;
+if ($period eq "day") {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '-u 100',
+    '-l 0',
+   
+
+   '--slope-mode',
+   '--title=Temperature and humidity',
+   '--watermark=Cary',
+   '--right-axis-label=Future',
+   '--color=ARROW#00FF00',
+   '--color=BACK#000000',
+   '--color=CANVAS#000000',
+   '--color=SHADEA#00FF00',
+   '--color=SHADEB#00FF00',
+   '--color=GRID#00FF00',
+   '--color=MGRID#00FF00',
+   '--color=FONT#CC0033',
+   '--color=AXIS#00FF00',
+
+    "DEF:tempc=$file:tempc:AVERAGE",
+    "DEF:humidity=$file:humidity:AVERAGE",
+    "DEF:inmax=$file:tempc:MAX",
+    "DEF:outmax=$file:humidity:MAX",
+    
+    'AREA:tempc#00cc00:°C\u',
+    'LINE1:humidity#0000ff:humidity %              \r',
+    'LINE1:inmax#ff0000:Max. °C\u',
+    'LINE1:outmax#ff00ff:Max. humidity %         \r',
+    'HRULE:10#EDC748:Target Min. 10°C            \l',
+    'HRULE:32.22#EC9D48:Target Max. 32.22°C     \l',
+    
+    'GPRINT:tempc:MIN:Min. Temp.\: %1.3lf%S°C\u',
+    'GPRINT:humidity:MIN:Min. humidity\: %1.3lf%S%%   \r',
+    'GPRINT:tempc:MAX:Max. Temp.\: %1.3lf%S°C\u',
+    'GPRINT:humidity:MAX:Max. humidity\: %1.3lf%S%%   \r',
+    'GPRINT:tempc:LAST:Current Temp.\: %1.3lf%S°C\u',
+    'GPRINT:humidity:LAST:Current humidity\: %1.3lf%S%%\r'
+);
+} else {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '-u 100',
+    '-l 0',
+    
+    '--slope-mode',
+    '--title=Temperature and humidity',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+
+   "DEF:tempc=$file:tempc:AVERAGE",
+    "DEF:humidity=$file:humidity:AVERAGE",
+    "DEF:inmax=$file:tempc:MAX",
+    "DEF:outmax=$file:humidity:MAX",
+    
+    'AREA:tempc#00cc00:°C\u',
+    'LINE1:humidity#0000ff:humidity %           \r',
+    'LINE1:inmax#ff0000:Max. °C\u',
+    'LINE1:outmax#ff00ff:Max. humidity %      \r',
+    'HRULE:10#EDC748:Target Min. °C      \l',
+    'HRULE:32.22#EC9D48:Target Max. °C       \l',
+    
+    'GPRINT:tempc:MIN:Min. Temp.\: %1.3lf%S°C\u',
+    'GPRINT:humidity:MIN:Min. humidity\: %1.3lf%S%%\r',
+    'GPRINT:tempc:MAX:Max. Temp.\: %1.3lf%S°C\u',
+    'GPRINT:humidity:MAX:Max. humidity\: %1.3lf%S%%\r',
+    'GPRINT:tempc:AVERAGE:Avg. Temp.\: %1.3lf%S°C\u',
+    'GPRINT:humidity:AVERAGE:Avg. humidity\: %1.3lf%S%%\r'
+);
+}
+
+if ($period eq 'week') {
+	push @args,('-s -1week');
+} elsif ($period eq 'month') {
+	push @args,('-s -1month');
+} elsif ($period eq 'year') {
+	push @args,('-s -1year');
+} else {
+	push @args,('-s -24h','-x','MINUTE:15:HOUR:1:HOUR:1:0:%H');
+}
+RRDs::graph(@args);
+my $err=RRDs::error;
+if ($err) {
+	print "error: $err\n" if $err;
+	exit(1);
+}
+exit(0);
