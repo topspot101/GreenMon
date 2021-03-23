@@ -1,0 +1,194 @@
+#!/usr/bin/perl -w
+use lib qw(/usr/lib/arm-linux-gnueabihf/perl5/5.28);
+use RRDs;
+use strict;
+use Getopt::Long;
+my $rrd_files_dir ="/home/cary/workspace/Phidget/";
+my %opts = ();
+GetOptions(\%opts, 'debug!','h!','type=s','id=s','period=s');
+my $file;
+if ($opts{type} eq "temphum") {
+	$file = $rrd_files_dir."temphumidity..rrd";
+} elsif ($opts{type} eq "ikInputOutput") {
+	$file = $rrd_files_dir."kit1.rrd";
+} elsif ($opts{type} eq "grp") {
+}
+my $period = $opts{period};
+my $end=RRDs::last($file);
+my @args;
+if ($period eq "day") {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '-l 0',
+    '-u 80',
+    '--slope-mode',
+    '--title=ik Inputs Outputs',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+    "DEF:input00=$file:input00:AVERAGE",
+    "DEF:output00=$file:output00:AVERAGE",
+    "DEF:input01=$file:input01:AVERAGE",
+    "DEF:output01=$file:output01:AVERAGE",
+    "DEF:input02=$file:input02:AVERAGE",
+    "DEF:output02=$file:output02:AVERAGE",
+    "DEF:input03=$file:input03:AVERAGE",
+    "DEF:output03=$file:output03:AVERAGE",
+    "DEF:input04=$file:input04:AVERAGE",
+    "DEF:output04=$file:output04:AVERAGE",
+    "DEF:input05=$file:input05:AVERAGE",
+    "DEF:output05=$file:output05:AVERAGE",
+    "DEF:input06=$file:input06:AVERAGE",
+    "DEF:output06=$file:output06:AVERAGE",
+    "DEF:input07=$file:input07:AVERAGE",
+    "DEF:output07=$file:output07:AVERAGE",
+    "DEF:input00max=$file:input00:MAX",
+    "DEF:output00max=$file:output00:MAX",
+    "DEF:input01max=$file:input01:MAX",    
+    "DEF:output01max=$file:output01:MAX",
+    "DEF:input02max=$file:input02:MAX",
+    "DEF:output02max=$file:output02:MAX",
+    "DEF:input03max=$file:input03:MAX",
+    "DEF:output03max=$file:output03:MAX",
+    "DEF:input04max=$file:input04:MAX",
+    "DEF:output04max=$file:output04:MAX",
+    "DEF:input05max=$file:input05:MAX",
+    "DEF:output05max=$file:output05:MAX",
+    "DEF:input06max=$file:input06:MAX",
+    "DEF:output06max=$file:output06:MAX",
+    "DEF:input07max=$file:input07:MAX",
+    "DEF:output07max=$file:output07:MAX",
+    'LINE3:input00max#C07FEF:1  Input 0\u',
+    'LINE3:output00max#EA644A:10 Output 0         \r',
+    'LINE3:input01max#EC9D48:15 Input 1\u',
+    'LINE3:output01max#ECD748:20 Output 1         \r',
+    'LINE3:input02max#54EC48:25 Input 2\u',
+    'LINE3:output02max#48C4EC:30 Output 2         \r',
+    'LINE3:input03max#DE48EC:35 Input 3\u',
+    'LINE3:output03max#7648EC:40 Output 3         \r',
+    'LINE2:input04max#CC3118:45 Input 4\u',
+    'LINE3:output04max#CC7016:50 Output 4         \r',
+    'LINE3:input05max#C9B215:55 Input 5\u',
+    'LINE3:output05max#24BC14:60 Output 5         \r',
+    'LINE3:input06max#1598C3:65 Input 6\u',
+    'LINE3:output06max#B415C7:70 Output 6         \r',
+    'LINE3:input07max#4D18E4:75 Input 7\u',
+    'LINE3:output07max#ff00ff:80 Output 7         \r',
+    'GPRINT:input00:LAST:Input 0 State\: %2.3lf%S\u',
+    'GPRINT:output00:LAST:Output 0 State\: %2.3lf%S\r', 
+    'GPRINT:input01:LAST:Input 1 State\: %2.3lf%S\u',
+    'GPRINT:output01:LAST:Output 1 State\: %2.3lf%S\r',
+    'GPRINT:input02:LAST:Input 2 State\: %2.3lf%S\u',
+    'GPRINT:output02:LAST:Output 2 State\: %2.3lf%S\r',
+    'GPRINT:input03:LAST:Input 3 State\: %2.3lf%S\u',
+    'GPRINT:output03:LAST:Output 3 State\: %2.3lf%S\r',
+    'GPRINT:input04:LAST:Input 4 State\: %2.3lf%S\u',
+    'GPRINT:output04:LAST:Output 4 State\: %2.3lf%S\r',
+    'GPRINT:input05:LAST:Input 5 State\: %2.3lf%S\u',
+    'GPRINT:output05:LAST:Output 5 State\: %2.3lf%S\r',
+    'GPRINT:input06:LAST:Input 6 State\: %2.3lf%S\u',
+    'GPRINT:output06:LAST:Output 6 State\: %2.3lf%S\r',
+    'GPRINT:input07:LAST:Input 7 State\: %2.3lf%S\u',
+    'GPRINT:output07:LAST:Output 7 State\: %2.3lf%S\r'
+);
+} else {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '-l 0',
+    '-u 80',
+    '--slope-mode',
+    '--title=ik Inputs Outputs',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+    "DEF:input00=$file:input00:AVERAGE",
+    "DEF:output00=$file:output00:AVERAGE",
+    "DEF:input01=$file:input01:AVERAGE",
+    "DEF:output01=$file:output01:AVERAGE",
+    "DEF:input02=$file:input02:AVERAGE",
+    "DEF:output02=$file:output02:AVERAGE",
+    "DEF:input03=$file:input03:AVERAGE",
+    "DEF:output03=$file:output03:AVERAGE",
+    "DEF:input04=$file:input04:AVERAGE",
+    "DEF:output04=$file:output04:AVERAGE",
+    "DEF:input05=$file:input05:AVERAGE",
+    "DEF:output05=$file:output05:AVERAGE",
+    "DEF:input06=$file:input06:AVERAGE",
+    "DEF:output06=$file:output06:AVERAGE",
+    "DEF:input07=$file:input07:AVERAGE",
+    "DEF:output07=$file:output07:AVERAGE",
+    "DEF:input00max=$file:input00:MAX",
+    "DEF:output00max=$file:output00:MAX",
+    "DEF:input01max=$file:input01:MAX",
+    "DEF:output01max=$file:output01:MAX",
+    "DEF:input02max=$file:input02:MAX",
+    "DEF:output02max=$file:output02:MAX",
+    "DEF:input03max=$file:input03:MAX",
+    "DEF:output03max=$file:output03:MAX",
+    "DEF:input04max=$file:input04:MAX",
+    "DEF:output04max=$file:output04:MAX",
+    "DEF:input05max=$file:input05:MAX",
+    "DEF:output05max=$file:output05:MAX",
+    "DEF:input06max=$file:input06:MAX",
+    "DEF:output06max=$file:output06:MAX",
+    "DEF:input07max=$file:input07:MAX",
+    "DEF:output07max=$file:output07:MAX",
+    'LINE1:input00max#C07FEF:1  Input 0\u',
+    'LINE1:output00max#4D18E4:10 Output 0\r',
+    'LINE1:input01max#EC9D48:15 Input 1\u',
+    'LINE1:output01max#ECD748:20 Output 1\r',
+    'LINE1:input02max#54EC48:25 Input 2\u',
+    'LINE1:output02max#48C4EC:30 Output 2\r',
+    'LINE1:input03max#DE48EC:35 Input 3\u',
+    'LINE1:output03max#7648EC:40 Output 3\r',
+    'LINE1:input04max#CC3118:45 Input 4\u',
+    'LINE1:output04max#CC7016:50 Output 4\r',
+    'LINE1:input05max#C9B215:55 Input 5\u',
+    'LINE1:output05max#24BC14:60 Output 5\r',
+    'LINE1:input06max#1598C3:65 Input 6\u',
+    'LINE1:output06max#B415C7:70 Output 6\r',
+    'LINE1:input07max#4D18E4:75 Input 7\u',
+    'LINE1:output07max#ff00ff:80 Output 7\r'
+);
+}
+if ($period eq 'week') {
+	push @args,('-s -1week');
+} elsif ($period eq 'month') {
+	push @args,('-s -1month');
+} elsif ($period eq 'year') {
+	push @args,('-s -1year');
+} else {
+	push @args,('-s -24h','-x','MINUTE:15:HOUR:1:HOUR:1:0:%H');
+}
+RRDs::graph(@args);
+my $err=RRDs::error;
+if ($err) {
+	print "error: $err\n" if $err;
+	exit(1);
+}
+exit(0);
+
