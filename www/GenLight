@@ -1,0 +1,91 @@
+#!/usr/bin/perl -w
+use lib qw(/usr/lib/arm-linux-gnueabihf/perl5/5.28);
+use RRDs;
+use strict;
+use Getopt::Long;
+my $rrd_files_dir ="/home/phidget/workspace/";
+my %opts = ();
+GetOptions(\%opts, 'debug!','h!','type=s','id=s','period=s');
+my $file;
+if ($opts{type} eq "temphum") {
+	$file = $rrd_files_dir."temphumidity.rrd";
+} elsif ($opts{type} eq "light") {
+	$file = $rrd_files_dir."temphumidity.rrd";
+} elsif ($opts{type} eq "grp") {
+}
+my $period = $opts{period};
+my $end=RRDs::last($file);
+my @args;
+if ($period eq "day") {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '--slope-mode',
+    '--title=Lights',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+    "DEF:light=$file:light:AVERAGE",
+    "DEF:lightmax=$file:light:MAX",
+    'AREA:light#EC9D48:Light Lux\u',     
+    'LINE1:lightmax#ff00ff:Max. Light Lux\r',    
+    'GPRINT:light:MIN:Min. Light Lux\: %2.3lf%S\l',
+    'GPRINT:light:MAX:Max. Light Lux\: %2.3lf%S\l',
+    'GPRINT:light:LAST:Current Light Lux\: %2.3lf%S\l'
+);
+} else {
+@args=(
+    "-",
+    '-e', $end,
+    '-v Past',
+    '-w 520',
+    '-h 160',
+    '--slope-mode',
+    '--title=Lights',
+    '--watermark=Cary',
+    '--right-axis-label=Future',
+    '--color=ARROW#00FF00',
+    '--color=BACK#000000',
+    '--color=CANVAS#000000',
+    '--color=SHADEA#00FF00',
+    '--color=SHADEB#00FF00',
+    '--color=GRID#00FF00',
+    '--color=MGRID#00FF00',
+    '--color=FONT#CC0033',
+    '--color=AXIS#00FF00',
+    "DEF:light=$file:light:AVERAGE",
+    "DEF:lightmax=$file:light:MAX",
+    'AREA:light#EC9D48:Light Lux\u',
+    'LINE1:lightmax#ff00ff:Max. Light Lux\r',
+    'GPRINT:light:MAX:Max. Light Lux\: %2.3lf%S\l',
+    'GPRINT:light:AVERAGE:Avg. Light Lux\: %2.3lf%S\l'
+);
+}
+  #'-x', 'HOUR:24:DAY:1:DAY:1:0:%e'
+if ($period eq 'week') {
+	push @args,('-s -1week');
+} elsif ($period eq 'month') {
+	push @args,('-s -1month');
+} elsif ($period eq 'year') {
+	push @args,('-s -1year');
+} else {
+	push @args,('-s -24h','-x','MINUTE:15:HOUR:1:HOUR:1:0:%H');
+}
+RRDs::graph(@args);
+my $err=RRDs::error;
+if ($err) {
+	print "error: $err\n" if $err;
+	exit(1);
+}
+exit(0);
